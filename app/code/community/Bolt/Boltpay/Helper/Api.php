@@ -655,25 +655,36 @@ class Bolt_Boltpay_Helper_Api extends Bolt_Boltpay_Helper_Data
         ///////////////////////////////////////////////////////////
         // Generate base cart data, quote, order and items related.
         ///////////////////////////////////////////////////////////
+        $product_configuration_helper = Mage::helper('catalog/product_configuration');
         $cartSubmissionData = array(
             'order_reference' => $quote->getParentQuoteId(),
             'display_id'      => $quote->getReservedOrderId().'|'.$quote->getId(),
             'items'           => array_map(
-                function ($item) use ($quote, &$calculatedTotal, $boltHelper) {
+                function ($item) use ($quote, &$calculatedTotal, $boltHelper, $product_configuration_helper) {
                     /** @var Mage_Sales_Model_Quote_Item $item */
                     $imageUrl = $boltHelper->getItemImageUrl($item);
                     $product   = Mage::getModel('catalog/product')->load($item->getProductId());
                     $type = $product->getTypeId() == 'virtual' ? self::ITEM_TYPE_DIGITAL : self::ITEM_TYPE_PHYSICAL;
-                    
-                    // Debug code for capturing attributes of product to add to the cart array below    
-                    $attribute = $product->getResource()->getAttribute('color');
 
-                    echo "<script>console.log('Color')</script>";
-                    echo "<script>console.log(".json_encode($attribute->getFrontend()->getValue($item->getProduct())).")</script>";
-                    
-                    $attribute = $product->getResource()->getAttribute('size');
-                    echo "<script>console.log('Size')</script>";
-                    echo "<script>console.log(".json_encode($attribute->getFrontend()->getValue($item->getProduct())).")</script>";
+                    //////////////////////////////////////////////////////////////////////////
+                    /// You need to check attributes.  The easiest way is like this by
+                    /// looking through the getData array
+                    //////////////////////////////////////////////////////////////////////////
+                    echo "console.log('Data');";
+                    echo "console.log(".json_encode($product->getData()).");";
+                    //////////////////////////////////////////////////////////////////////////
+
+                    //////////////////////////////////////////////////////////////////////////
+                    /// You need to also check custom options.  This is set on the item and
+                    /// and can vary on a product.  Do it like this
+                    //////////////////////////////////////////////////////////////////////////
+                    foreach($product_configuration_helper->getCustomOptions($item) as $option) {
+                        /** @var Mage_Sales_Model_Quote_Item_Option $option */
+                        echo "console.log('Option');";
+                        echo "console.log(".json_encode($option).");";
+                    }
+                    //////////////////////////////////////////////////////////////////////////
+
 
                     $calculatedTotal += round($item->getPrice() * 100 * $item->getQty());
                     return array(
