@@ -660,12 +660,14 @@ class Bolt_Boltpay_Helper_Api extends Bolt_Boltpay_Helper_Data
             'display_id'      => $quote->getReservedOrderId().'|'.$quote->getId(),
             'items'           => array_map(
                 function ($item) use ($quote, &$calculatedTotal, $boltHelper) {
+                    /** @var Mage_Sales_Model_Quote_Item $item */
                     $imageUrl = $boltHelper->getItemImageUrl($item);
                     $product   = Mage::getModel('catalog/product')->load($item->getProductId());
                     $type = $product->getTypeId() == 'virtual' ? self::ITEM_TYPE_DIGITAL : self::ITEM_TYPE_PHYSICAL;
                     
                     // Debug code for capturing attributes of product to add to the cart array below    
                     $attribute = $product->getResource()->getAttribute('color');
+
                     echo "<script>console.log('Color')</script>";
                     echo "<script>console.log(".json_encode($attribute->getFrontend()->getValue($item->getProduct())).")</script>";
                     
