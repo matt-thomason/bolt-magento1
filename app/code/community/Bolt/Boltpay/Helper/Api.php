@@ -666,28 +666,7 @@ class Bolt_Boltpay_Helper_Api extends Bolt_Boltpay_Helper_Data
                     $product   = Mage::getModel('catalog/product')->load($item->getProductId());
                     $type = $product->getTypeId() == 'virtual' ? self::ITEM_TYPE_DIGITAL : self::ITEM_TYPE_PHYSICAL;
 
-                    //////////////////////////////////////////////////////////////////////////
-                    /// You need to check attributes.  The easiest way is like this by
-                    /// looking through the getData array
-                    //////////////////////////////////////////////////////////////////////////
-                    echo "console.log('Data');";
-                    echo "console.log(".json_encode($product->getData()).");";
-                    //////////////////////////////////////////////////////////////////////////
-
-                    //////////////////////////////////////////////////////////////////////////
-                    /// You need to also check custom options.  This is set on the item and
-                    /// and can vary on a product.  Do it like this
-                    //////////////////////////////////////////////////////////////////////////
-                    foreach($product_configuration_helper->getCustomOptions($item) as $option) {
-                        /** @var Mage_Sales_Model_Quote_Item_Option $option */
-                        echo "console.log('Option');";
-                        echo "console.log(".json_encode($option).");";
-                    }
-                    //////////////////////////////////////////////////////////////////////////
-
-
-                    $calculatedTotal += round($item->getPrice() * 100 * $item->getQty());
-                    return array(
+                    $temp = array(
                         'reference'    => $quote->getId(),
                         'image_url'    => $imageUrl,
                         'name'         => $item->getName(),
@@ -696,8 +675,15 @@ class Bolt_Boltpay_Helper_Api extends Bolt_Boltpay_Helper_Data
                         'total_amount' => round($item->getCalculationPrice() * 100 * $item->getQty()),
                         'unit_price'   => round($item->getCalculationPrice() * 100),
                         'quantity'     => $item->getQty(),
-                        'type'         => $type
+                        'type'         => $type,
                     );
+                        
+                    // Add all the configurable options of the item to the return array
+                    foreach($product_configuration_helper->getConfigurableOptions($item) as $option) {
+                        $temp[strtolower($option['label'])] = $option['value'];
+                    }
+                    
+                    return $temp;
                 }, $items
             ),
             'currency' => $quote->getQuoteCurrencyCode(),
